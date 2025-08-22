@@ -6,7 +6,7 @@ const router = express.Router();
 // Get All
 router.get("/", async (req, res) => {
   try {
-    const { finished, q, page = 1, limit = 20 } = req.query;
+    const { finished, q, page = 1, limit = 5 } = req.query;
     const filter = {};
     if (finished === "true" || finished === "false") filter.finished = finished === "true";
     if (q) filter.name = { $regex: q, $options: "i" };
