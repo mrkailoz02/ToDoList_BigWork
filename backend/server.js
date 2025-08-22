@@ -16,7 +16,7 @@ app.get("/api", (req, res) => {
 
 app.use("/api/todos", todoRoutes);
 
-app.get('/api/', (req, res) => {
+app.get('/api/data', (req, res) => {
     const dataQuery = req.query.data;
 
     if (dataQuery) {
