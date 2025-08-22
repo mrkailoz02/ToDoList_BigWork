@@ -12,18 +12,20 @@ const TodoList = () => {
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc"); // "asc" หรือ "desc"
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const limit = 5;
 
   useEffect(() => {
     fetchTodos(1);
-  }, [searchQuery]);
+  }, [searchQuery, sortKey, sortOrder]);
 
-  const fetchTodos = async (currentPage = 1) => {
+  const fetchTodos = async (currentPage = 1, key = sortKey, order = sortOrder) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/todos?page=${currentPage}&limit=${limit}&q=${searchQuery}`
+        `http://localhost:5000/api/todos?page=${currentPage}&limit=${limit}&q=${searchQuery}&sortKey=${key}&sortOrder=${order}`
       );
       setTodos(res.data.items);
       setPages(res.data.pages);
@@ -94,6 +96,15 @@ const TodoList = () => {
     }
   };
 
+  const requestSort = (key) => {
+    let order = "asc";
+    if (sortKey === key && sortOrder === "asc") order = "desc";
+    setSortKey(key);
+    setSortOrder(order);
+
+    fetchTodos(1, key, order);
+  };
+
   const handlePageChange = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > pages) return;
 
@@ -128,9 +139,15 @@ const TodoList = () => {
         <table className="table table-striped table-hover table-bordered text-center">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Date Start</th>
-              <th>Finished</th>
+              <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>
+                Name {sortKey === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => requestSort('date_start')} style={{ cursor: 'pointer' }}>
+                Date Start {sortKey === 'date_start' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => requestSort('finished')} style={{ cursor: 'pointer' }}>
+                Finished {sortKey === 'finished' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -141,21 +158,8 @@ const TodoList = () => {
                 <td>{todo.date_start?.slice(0, 10)}</td>
                 <td className={todo.finished ? "text-success fw-bold" : ""}>{todo.finished ? "✔" : "❌"}</td>
                 <td>
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    className="me-2"
-                    onClick={() => openEditModal(todo)}
-                  >
-                    Edit
-                  </Button>{" "}
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => deleteTodo(todo.id || todo._id)}
-                  >
-                    Delete
-                  </Button>
+                  <Button variant="warning" size="sm" className="me-2" onClick={() => openEditModal(todo)}>Edit</Button>{" "}
+                  <Button variant="danger" size="sm" onClick={() => deleteTodo(todo.id || todo._id)}>Delete</Button>
                 </td>
               </tr>
             ))}

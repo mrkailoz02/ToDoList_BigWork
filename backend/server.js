@@ -8,12 +8,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/api", (req, res) => {
-  const { data } = req.query;
-  if (!data) return res.json([{ data: null, status: "no data" }]);
-  res.json([{ data, status: "success" }]);
-});
-
 app.use("/api/todos", todoRoutes);
 
 app.get('/api/data', (req, res) => {

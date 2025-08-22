@@ -6,17 +6,23 @@ const router = express.Router();
 // Get All
 router.get("/", async (req, res) => {
   try {
-    const { finished, q, page = 1, limit = 5 } = req.query;
+    const { finished, q, page = 1, limit = 5, sortKey = "createdAt", sortOrder = "desc" } = req.query;
     const filter = {};
     if (finished === "true" || finished === "false") filter.finished = finished === "true";
     if (q) filter.name = { $regex: q, $options: "i" };
-
     const skip = (Number(page) - 1) * Number(limit);
+    const sort = {};
+    sort[sortKey] = sortOrder === "asc" ? 1 : -1;
     const [items, total] = await Promise.all([
-      Todo.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      Todo.find(filter).sort(sort).skip(skip).limit(Number(limit)),
       Todo.countDocuments(filter)
     ]);
-    res.json({ items, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+    res.json({
+      items,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit))
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
