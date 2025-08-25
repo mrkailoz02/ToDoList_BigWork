@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal, Button, Form, Pagination } from "react-bootstrap";
 import './App.css';
+import { API_URL } from "./config";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -25,7 +26,7 @@ const TodoList = () => {
   const fetchTodos = async (currentPage = 1, key = sortKey, order = sortOrder) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/todos?page=${currentPage}&limit=${limit}&q=${searchQuery}&sortKey=${key}&sortOrder=${order}`
+        `${API_URL}/api/todos?page=${currentPage}&limit=${limit}&q=${searchQuery}&sortKey=${key}&sortOrder=${order}`
       );
       setTodos(res.data.items);
       setPages(res.data.pages);
@@ -66,13 +67,13 @@ const TodoList = () => {
 
     try {
       if (editId) {
-        await axios.put(`http://localhost:5000/api/todos/${editId}`, {
+        await axios.put(`${API_URL}/api/todos/${editId}`, {
           name,
           date_start: dateStart,
           finished,
         });
       } else {
-        await axios.post("http://localhost:5000/api/todos", {
+        await axios.post("${API_URL}/api/todos", {
           name,
           date_start: dateStart,
           finished: false,
@@ -89,7 +90,7 @@ const TodoList = () => {
 
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/todos/${id}`);
+      await axios.delete(`${API_URL}/api/todos/${id}`);
       fetchTodos(page);
     } catch (err) {
       console.error(err);
