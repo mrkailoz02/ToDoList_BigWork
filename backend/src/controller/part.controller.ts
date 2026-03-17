@@ -1,22 +1,40 @@
-import { PartModel } from "../models/part.model";
+import partModel from "../models/part.model";
 import { BadRequestError } from "../middlewares/errorHandler";
 import db from "@/config/db";
-import { NextFunction } from "express";
+import redis from "@/config/redis";
 
-export const getAllParts = async () => {
-  try {
-    const parts = await PartModel.getAllParts(db, "");
-    console.log("Data fetched from DB:", parts.length);
+const CACHE_KEY = "parts:all";
 
-    if (!parts) {
-      throw new BadRequestError({ message: "ไม่พบข้อมูลอะไหล่" });
+const partController = {
+  getAllParts: async () => {
+    try {
+      // 1. ใช้ Helper getCache ที่เขียน (ระบุ Type เป็น Array ของพาร์ท)
+      const cachedParts = await redis.getCache<any[]>(CACHE_KEY);
+
+      if (cachedParts) {
+        console.log("⚡ [Redis] Serving from Cache", cachedParts);
+        return cachedParts;
+      }
+
+      // 2. ถ้าไม่มีใน Cache ให้ดึงจาก Database
+      console.log("🏠 [Database] Querying...");
+      const parts = await partModel.getAllParts(db, "");
+
+      if (!parts || parts.length === 0) {
+        return [];
+      }
+
+      // 3. ใช้ Helper setCache เก็บข้อมูล (TTL 1 ชั่วโมงตามที่ตั้ง Default ไว้)
+      await redis.setCache(CACHE_KEY, parts);
+
+      return parts;
+    } catch (error) {
+      console.error("Error in getAllParts:", error);
+      throw new BadRequestError({
+        message: "ไม่สามารถดึงข้อมูลอะไหล่ได้",
+      });
     }
-
-    return parts;
-  } catch (error) {
-    console.error("Error fetching parts:", error);
-    throw new BadRequestError({
-      message: "เกิดข้อผิดพลาดในการดึงข้อมูลอะไหล่",
-    });
-  }
+  },
 };
+
+export default partController;

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import * as partController from "../controller/part.controller";
+import partController from "../controller/part.controller";
 import { asyncCatch } from "../middlewares/errorHandler";
 
 const router = Router();
